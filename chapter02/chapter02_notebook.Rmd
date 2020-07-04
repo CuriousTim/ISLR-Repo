@@ -1,0 +1,190 @@
+---
+title: "ISLR Chapter 02 Notebook"
+author: "Justin Lim"
+date: "July 3, 2020"
+output: html_document
+---
+
+I started following along from the graphics sections. (2.3.2)
+
+## Graphics (2.3.2)
+
+```{r}
+x <- rnorm(100) # 100 random samples from a normal distribution
+y <- rnorm(100)
+plot(x, y, xlab = "X-Axis Label", ylab = "Y-Axis Label", main = "Plot Title")
+```
+
+Plots in R can be sent to different output devices (e.g. png, X11, pdf, etc.).
+This is accomplished by first starting the graphics device and then generating
+the plot. After a device is no longer needed, it should be closed with the
+`dev.off()` function call. Multiple devices can be open at once, but only one,
+the current device, will accept a graph. A list of devices can be found with
+`help(Devices)`.
+
+```{r, eval = FALSE}
+pdf("Figure.pdf")
+plot(x, y, col = "green")
+dev.off()
+```
+
+Create a sequence of numbers
+
+```{r}
+x <- seq(1, 10)
+x
+x <- 1:10
+x
+x <- seq(-pi, pi, length = 50)
+```
+
+### Contour Plots
+
+```{r}
+y <- x
+f <- outer(x , y, function(x, y) cos(y) / (1 + x^2)) # Outer product
+contour(x, y, f)
+contour(x, y, f, nlevels = 45, add = TRUE)
+fa <- (f - t(f)) / 2
+contour(x, y, fa, nlevels = 15)
+```
+
+### image and persp
+
+`image()` is like a heatmap contour plot while `persp()` produces a
+three-dimensional plot. The arguments `theta` and `phi` control the angle from
+which the plot is viewed. `theta` gives the azimuthal direction and `phi` gives
+the colatitude. Hopefully those mean something to someone.
+
+```{r}
+image(x, y, fa)
+persp(x, y, fa)
+persp(x, y, fa, theta = 30)
+persp(x, y, fa, theta = 30, phi = 20)
+persp(x, y, fa, theta = 30, phi = 70)
+persp(x, y, fa, theta = 30, phi = 40)
+```
+
+### Loading Data
+
+```{r}
+library(ISLR)
+dim(Auto)
+```
+
+### Additional Graphical and Numerical Summaries
+
+
+The `as.factor` essentially converts the cylinders column into categorical
+data.
+
+```{r}
+plot(Auto$cylinders, Auto$mpg)
+plot(as.factor(Auto$cylinders), Auto$mpg)
+plot(as.factor(Auto$cylinders), Auto$mpg, col = "red", varwidth = TRUE,
+xlab = "cylinders", ylab = "MPG")
+```
+
+```{r}
+hist(Auto$mpg, col = 2, breaks = 15)
+```
+
+The `pairs()` function creates a scatterplot matrix which is scatterplot for
+every pair of variables in the dataframe.
+
+```{r}
+pairs(Auto)
+pairs(~ mpg + displacement + horsepower + weight, Auto)
+```
+
+### History
+
+Before quitting R, the history of all the commands that were typed can be saved
+with `savehistory()` and loaded with `loadhistory()`.
+
+
+## Applied Exercies
+
+### Question 9
+
+```{r}
+str(Auto)
+```
+
+The mpg, cylinders, displacement, horsepower, weight, acceleration and year are
+quantitative predictors. The origin and name are qualitative predictors. The
+origin is coded into three integers, 1 for American, 2 for European and 3 for
+Japanese.
+
+```{r}
+quant <- c("mpg", "cylinders", "displacement", "horsepower", "weight",
+                  "acceleration", "year") 
+lapply(Auto[quant], range) # Ranges
+sapply(Auto[quant], mean) # Mean
+sapply(Auto[quant], sd) # Standard Deviation
+
+# Repeat with 10th through 85th observations removed
+lapply(Auto[-(10:85), quant], range) # Ranges
+sapply(Auto[-(10:85), quant], mean) # Mean
+sapply(Auto[-(10:85), quant], sd) # Standard Deviation
+```
+
+Investigate some relationships between the predictors
+
+```{r}
+plot(Auto$year, Auto$mpg, xlab = "Model Year (modulo 100)", ylab = "mpg")
+```
+
+There appears to be a general upward trend where mpg increase with model year.
+
+```{r}
+plot(as.factor(Auto$origin), Auto$mpg)
+```
+
+Japanese cars tend to have higher mpg than European cars which tend to have
+higher mpg than American cars.
+
+### Question 10
+
+```{r}
+library(MASS)
+```
+
+The Boston data set has 506 rows and 14 columns. The columns are various
+observations for different towns in Boston.
+
+```{r}
+pairs(~ rm + age + dis + ptratio + black + medv, data = Boston)
+```
+
+It is somewhat difficult to spot trends from a pairwise matrix of plots. There
+are a few plots that show a clear positive or negative trends, but most of the
+plots are hard to interpret.
+
+```{r}
+pairs(~ crim + zn + indus + chas + nox + black + medv, data = Boston)
+```
+
+There appears to be a relationship between per capita crime rate and nitrogen
+oxides concentration. Crime rate also seems to decrease with increasing house
+value.
+
+```{r}
+preds <- c("crim", "tax", "ptratio")
+hist(Boston$crim)
+hist(Boston$tax)
+hist(Boston$ptratio)
+```
+
+```{r}
+nrow(Boston[Boston$chas == 1, ]) # Number of suburbs that bound the Charles R.
+median(Boston$ptratio) # Median pupil-teacher ratio.
+
+# Suburb with lowest median value of owner-occupied homes.
+Boston[which.min(Boston$medv), ]
+lapply(Boston, range)
+```
+
+Most of the predictors seem to be in the middle of their ranges. Black is at
+the maximum.
+
